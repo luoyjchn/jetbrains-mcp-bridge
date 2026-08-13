@@ -1,0 +1,18 @@
+// 项目级配置示例
+// 放置位置：{project}/.claude/jetbrains-mcp-bridge.json5
+// 此文件的配置会覆盖用户级和插件默认配置
+
+{
+  // 是否启用 hook 拦截
+  enabled: true,
+  // 项目根目录的绝对路径（由 init 命令自动设置）
+  projectPath: "",
+  // MCP 前缀 → glob 路径映射
+  // 支持 *（单层）、**（任意层）、?（单字符）、{a,b}（或）、!前缀（排除）
+  mcpMapping: {
+    // 示例：将 src/main 下所有文件映射到 IntelliJ IDEA
+    // "mcp__JetBrains-IDEA": ["src/main/**", "!src/main/test/**"],
+    // 将 src/frontend 映射到 WebStorm
+    // "mcp__JetBrains-WebStorm": "src/frontend/**",
+  },
+}

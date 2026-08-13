@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Write|Edit|Glob|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/jetbrains-mcp-bridge.mjs"],
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

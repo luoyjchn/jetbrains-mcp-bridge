@@ -1,0 +1,29 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "luoyjchn",
+  "description": "Bridge JetBrains IDE features to Claude Code via MCP - intercepts file operations and suggests IDE-native tools",
+  "owner": {
+    "name": "luoyjchn"
+  },
+  "plugins": [
+    {
+      "name": "jetbrains-mcp-bridge",
+      "description": "Intercepts Claude Code file operations (Read/Write/Edit/Grep/Glob) and Bash commands, suggesting JetBrains IDE MCP tools instead (search_regex, read_file, apply_patch, etc.)",
+      "version": "0.1.0",
+      "author": {
+        "name": "luoyjchn"
+      },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/luoyjchn/jetbrains-mcp-bridge",
+      "tags": [
+        "jetbrains",
+        "mcp",
+        "ide",
+        "intercept",
+        "bridge"
+      ]
+    }
+  ],
+  "version": "0.1.0"
+}

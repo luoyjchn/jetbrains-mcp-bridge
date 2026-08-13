@@ -1,0 +1,23 @@
+{
+  "name": "jetbrains-mcp-bridge",
+  "displayName": "JetBrains MCP Bridge",
+  "version": "0.1.0",
+  "description": "Bridge JetBrains IDE features to Claude Code via MCP",
+  "author": {
+    "name": "luoyjchn"
+  },
+  "repository": "https://github.com/luoyjchn/jetbrains-mcp-bridge",
+  "homepage": "https://github.com/luoyjchn/jetbrains-mcp-bridge",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "jetbrains",
+    "mcp",
+    "ide"
+  ],
+  "defaultEnabled": true,
+  "skills": [
+    "./skills/setup/"
+  ]
+}

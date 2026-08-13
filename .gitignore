@@ -1,0 +1,60 @@
+# === Dependencies ===
+node_modules/
+
+# === Build Output ===
+# esbuild 打包输出（adapters 内的 bundle 产物）
+dist/
+*.bundle.mjs
+
+# === IDE - JetBrains ===
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# === IDE - VS Code ===
+.vscode/
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# === Environment ===
+.env
+.env.local
+.env.*.local
+
+# === Logs ===
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# === Testing ===
+coverage/
+.nyc_output/
+
+# === Temporary Files ===
+tmp/
+temp/
+*.tmp
+*.temp
+
+# === Runtime Generated Config ===
+# 由 /jetbrains-mcp-bridge-setup 命令生成的配置文件
+.mcp.json
+
+# === OMC / Claude Code Runtime Artifacts ===
+.omc/
+.claude
+.claude/settings.local.json
+
+# === Misc ===
+*.tgz
+*.tar.gz
+.cache/
+/.codegraph/
+CLAUDE.md

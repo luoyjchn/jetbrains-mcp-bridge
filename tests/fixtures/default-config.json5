@@ -1,0 +1,181 @@
+{
+  // 是否启用插件拦截
+  enabled: true,
+  // 项目根目录的绝对路径（由 init 命令自动设置）
+  // 仅拦截此路径下的文件操作
+  projectPath: "",
+  // MCP 前缀 → 路径 glob 映射
+  // 支持：*（单层）、**（任意层）、?（单字符）、{a,b}（或）、!前缀（排除）
+  // 值可以是单个 glob 字符串或 glob 数组
+  mcpMapping: {
+    // 示例：
+    // "mcp__JetBrains-IDEA__": ["src/main/**", "!src/main/test/**"],
+    // "mcp__JetBrains-WebStorm__": "src/frontend/**",
+  },
+  // 路径排除模式（匹配的文件路径不会被拦截）
+  // 支持相对于 projectPath 的路径和绝对路径
+  excludePatterns: [
+    //    ".claude/**",
+    //    "node_modules/**",
+    //    ".git/**",
+  ],
+  // 默认 MCP 前缀
+  defaultPrefix: "mcp__JetBrains-",
+  // 通用 Bash 命令模式检测规则
+  bashPatterns: [
+    {
+      pattern: "grep|rg|findstr|Select-String",
+      reason: "代码搜索",
+      suggest: {
+        idea: "search_regex（正则搜索）或 search_symbol（符号查找）",
+        webstorm: "search_regex（正则搜索）或 search_symbol（符号查找）",
+        _default: "search_regex",
+      },
+    },
+    {
+      pattern: "\\b(find|Get-ChildItem)\\s",
+      reason: "文件查找",
+      suggest: {
+        idea: "search_file（glob 查找）或 list_directory_tree（目录树）",
+        webstorm: "search_file（glob 查找）或 list_directory_tree（目录树）",
+        _default: "search_file",
+      },
+    },
+    {
+      pattern: "\\bgit\\s+(log|diff|show|blame)\\b",
+      reason: "Git 查询",
+      suggest: {
+        idea: "git_status（Git 状态）或 execute_terminal_command（IDE 终端）",
+        webstorm: "git_status（Git 状态）或 execute_terminal_command（IDE 终端）",
+        _default: "git_status",
+      },
+    },
+    {
+      pattern: "\\b(mvnw|mvn)\\b",
+      reason: "Maven 构建",
+      suggest: {
+        idea: "build_project（增量构建）或 execute_run_configuration（Run Config）",
+        webstorm: "execute_terminal_command（WebStorm 无 Maven 构建支持）",
+        _default: "build_project",
+      },
+    },
+    {
+      pattern: "gradle[w]?\\s+",
+      reason: "Gradle 构建",
+      suggest: {
+        idea: "build_project（增量构建）或 execute_run_configuration（Run Config）",
+        webstorm: "execute_terminal_command（WebStorm 无 Gradle 构建支持）",
+        _default: "build_project",
+      },
+    },
+    {
+      pattern: "\\b(npm|pnpm|yarn)\\s+(run|build|test|install|exec|dev)\\b",
+      reason: "包管理操作",
+      suggest: {
+        idea: "execute_terminal_command（IDE 终端）或 execute_run_configuration（Run Config）",
+        webstorm: "execute_terminal_command（IDE 终端）或 execute_run_configuration（Run Config）",
+        _default: "execute_terminal_command",
+      },
+    },
+    {
+      pattern: "\\b(cat|head|tail)\\b.*\\.(java|vue|ts|js|jsx|tsx|xml|yml|yaml|sql|kt|kts)",
+      reason: "读取源码",
+      suggest: {
+        idea: "read_file（切片读取）或 get_symbol_info（符号文档）",
+        webstorm: "read_file（切片读取）或 get_symbol_info（符号文档）",
+        _default: "read_file",
+      },
+    },
+  ],
+  // Claude Code 通用工具 → JB-MCP 工具映射
+  toolMap: {
+    Read: {
+      reason: "读取项目文件",
+      suggest: {
+        idea: "read_file（切片读取）或 get_symbol_info（符号文档）",
+        webstorm: "read_file（切片读取）或 get_symbol_info（符号文档）",
+        _default: "read_file",
+      },
+    },
+    Write: {
+      reason: "写入项目文件",
+      suggest: {
+        idea: "create_new_file（新建）或 apply_patch（补丁）",
+        webstorm: "create_new_file（新建）或 apply_patch（补丁）",
+        _default: "create_new_file",
+      },
+    },
+    Edit: {
+      reason: "编辑项目文件",
+      suggest: {
+        idea: "apply_patch（补丁）或 rename_refactoring（重命名）",
+        webstorm: "apply_patch（补丁）或 rename_refactoring（重命名）",
+        _default: "apply_patch",
+      },
+    },
+    Glob: {
+      reason: "查找项目文件",
+      suggest: {
+        idea: "search_file（glob 查找）或 list_directory_tree（目录树）",
+        webstorm: "search_file（glob 查找）或 list_directory_tree（目录树）",
+        _default: "search_file",
+      },
+    },
+    Grep: {
+      reason: "搜索项目代码",
+      suggest: {
+        idea: "search_symbol（符号查找）或 search_regex（正则搜索）",
+        webstorm: "search_symbol（符号查找）或 search_regex（正则搜索）",
+        _default: "search_regex",
+      },
+    },
+  },
+  // 文件扩展名 → MCP 前缀映射
+  fileTypeMap: {
+    //    ".java": "mcp__JetBrains-IDEA",
+    //    ".kt": "mcp__JetBrains-IDEA",
+    //    ".gradle": "mcp__JetBrains-IDEA",
+    //    ".kts": "mcp__JetBrains-IDEA",
+    //    ".vue": "mcp__JetBrains-WebStorm",
+    //    ".ts": "mcp__JetBrains-WebStorm",
+    //    ".js": "mcp__JetBrains-WebStorm",
+    //    ".jsx": "mcp__JetBrains-WebStorm",
+    //    ".tsx": "mcp__JetBrains-WebStorm",
+    //    ".py": "mcp__JetBrains-PyCharm",
+    //    ".go": "mcp__JetBrains-GoLand",
+    //    ".rs": "mcp__JetBrains-RustRover",
+    //    ".c": "mcp__JetBrains-CLion",
+    //    ".cpp": "mcp__JetBrains-CLion",
+    //    ".h": "mcp__JetBrains-CLion",
+    //    ".hpp": "mcp__JetBrains-CLion",
+    //    ".php": "mcp__JetBrains-PhpStorm",
+    //    ".rb": "mcp__JetBrains-RubyMine",
+    //    ".cs": "mcp__JetBrains-Rider",
+    //    ".vb": "mcp__JetBrains-Rider",
+  },
+  // 要拦截的源码扩展名白名单
+  sourceExtensions: [
+    //    ".java",
+    //    ".kt",
+    //    ".gradle",
+    //    ".kts",
+    //    ".vue",
+    //    ".ts",
+    //    ".js",
+    //    ".jsx",
+    //    ".tsx",
+    //    ".py",
+    //    ".go",
+    //    ".rs",
+    //    ".c",
+    //    ".cpp",
+    //    ".h",
+    //    ".hpp",
+    //    ".php",
+    //    ".rb",
+    //    ".cs",
+    //    ".vb",
+  ],
+  // 配置版本号
+  configVersion: 1,
+}
