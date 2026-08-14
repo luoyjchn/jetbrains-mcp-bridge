@@ -162,32 +162,22 @@ async function main() {
   const result = evaluate(config, tool_name, tool_input, filePath);
 
   if (!result || result.action === 'pass') {
-    // DEBUG: 诊断信息通过 stdout JSON 输出
-    const debugInfo = `[JMB] ${tool_name} filePath=${filePath || '-'} mcpJson=${mcpJson?.path || 'null'} mcpServers=${mcpJson ? Object.keys(mcpJson.data.mcpServers).join(',') : '-'} mcpStatus=${JSON.stringify(config._mcpStatus)} action=pass prefix=-`;
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        additionalContext: debugInfo,
-      },
-    }) + '\n');
     process.exit(0);
   }
 
   if (result.action === 'block') {
-    let message = `[JetBrains MCP Bridge] ${result.reason}。必须使用 ${result.suggest} 替代，禁止通过 Bash 命令绕过此拦截。`;
+    let message = `[JetBrains MCP Bridge] ${result.reason}。建议使用 ${result.suggest}。`;
     if (result.prefix) {
-      message += ` (MCP server prefix: ${result.prefix})`;
+      message += ` (MCP: ${result.prefix})`;
     }
-    // DEBUG: block 时也输出诊断
-    const debugInfo = `[JMB] ${tool_name} filePath=${filePath || '-'} mcpJson=${mcpJson?.path || 'null'} mcpServers=${mcpJson ? Object.keys(mcpJson.data.mcpServers).join(',') : '-'} mcpStatus=${JSON.stringify(config._mcpStatus)} action=block prefix=${result.prefix || '-'}`;
-    process.stderr.write(message + '\n');
+    // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        additionalContext: debugInfo,
+        additionalContext: message,
       },
     }) + '\n');
-    process.exit(2);
+    process.exit(0);
   }
 
   process.exit(0);
