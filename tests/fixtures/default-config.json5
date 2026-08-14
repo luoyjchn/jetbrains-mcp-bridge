@@ -78,7 +78,16 @@
       },
     },
     {
-      pattern: "\\b(cat|head|tail)\\b.*\\.(java|vue|ts|js|jsx|tsx|xml|yml|yaml|sql|kt|kts)",
+      pattern: "\\b(cat|head|tail|type|less|more)\\b.*\\.(java|vue|ts|js|jsx|tsx|xml|yml|yaml|sql|kt|kts|py|go|rs|c|cpp|h|hpp|php|rb|cs|vb|swift|scala|clj|ex|lua|r|sh|html|css|scss|less|json5?|toml|ini|cfg|conf|gradle|sbt|cmake|md|graphql|proto)",
+      reason: "读取源码",
+      suggest: {
+        idea: "read_file（切片读取）或 get_symbol_info（符号文档）",
+        webstorm: "read_file（切片读取）或 get_symbol_info（符号文档）",
+        _default: "read_file",
+      },
+    },
+    {
+      pattern: "\\b(Get-Content|gc)\\s",
       reason: "读取源码",
       suggest: {
         idea: "read_file（切片读取）或 get_symbol_info（符号文档）",

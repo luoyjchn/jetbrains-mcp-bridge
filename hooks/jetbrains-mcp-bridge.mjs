@@ -174,7 +174,7 @@ async function main() {
   }
 
   if (result.action === 'block') {
-    let message = `[JetBrains MCP Bridge] ${result.reason}. Suggest using ${result.suggest}`;
+    let message = `[JetBrains MCP Bridge] ${result.reason}。必须使用 ${result.suggest} 替代，禁止通过 Bash 命令绕过此拦截。`;
     if (result.prefix) {
       message += ` (MCP server prefix: ${result.prefix})`;
     }

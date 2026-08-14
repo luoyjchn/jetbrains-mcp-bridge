@@ -28,6 +28,11 @@ describe("Feature coverage: bashPatterns", () => {
     { cmd: "cat src/Main.java", desc: "cat source file" },
     { cmd: "head src/Main.java", desc: "head source file" },
     { cmd: "tail src/Main.ts", desc: "tail source file" },
+    { cmd: "type src\\Main.java", desc: "type source file" },
+    { cmd: "less src/Main.vue", desc: "less source file" },
+    { cmd: "more src/App.py", desc: "more source file" },
+    { cmd: "Get-Content src/Main.java", desc: "Get-Content source file" },
+    { cmd: "gc src/Main.java", desc: "gc source file" },
   ];
   for (const { cmd, desc } of bashTests) {
     it(`blocks: ${desc}`, () => { assert.equal(evaluate(config, "Bash", { command: cmd }).action, "block"); });
