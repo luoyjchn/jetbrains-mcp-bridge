@@ -1,6 +1,6 @@
 # JetBrains MCP Bridge
 
-[English](#installation) | [中文](#安装)
+[English](README.md) | [中文](README.zh-CN.md)
 
 Claude Code plugin that intercepts native tools (Read, Write, Edit, Grep, Glob, Bash) and suggests JetBrains IDE MCP alternatives — leveraging IDE indexing, refactoring, and build capabilities directly from Claude Code.
 
