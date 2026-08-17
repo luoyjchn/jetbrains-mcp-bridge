@@ -2,7 +2,7 @@ import { loadConfig, evaluate } from '../src/core.mjs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createConnection } from 'node:net';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync, appendFileSync, renameSync } from 'node:fs';
 import { homedir } from 'node:os';
 
 const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT
@@ -14,6 +14,28 @@ const CACHE_TTL_MS = 60000;
 const pluginData = process.env.CLAUDE_PLUGIN_DATA
   || resolve(homedir(), '.cache', 'jetbrains-mcp-bridge');
 const CACHE_FILE = resolve(pluginData, 'session.json');
+const LOG_FILE = resolve(pluginData, 'hook.log');
+const LOG_MAX_SIZE = 1024 * 1024; // 1MB
+
+/**
+ * Append a JSONL log entry. Auto-rotates when file exceeds LOG_MAX_SIZE.
+ */
+function writeLog(entry) {
+  try {
+    mkdirSync(pluginData, { recursive: true });
+    if (existsSync(LOG_FILE)) {
+      try {
+        const { size } = statSync(LOG_FILE);
+        if (size > LOG_MAX_SIZE) {
+          renameSync(LOG_FILE, LOG_FILE + '.bak');
+        }
+      } catch { /* non-fatal */ }
+    }
+    appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n');
+  } catch {
+    // non-fatal
+  }
+}
 
 /**
  * Probe a single port via TCP connect.
@@ -164,6 +186,17 @@ async function main() {
   }
 
   const result = evaluate(config, tool_name, tool_input, filePath);
+
+  // 日志记录
+  const logEntry = {
+    ts: new Date().toISOString(),
+    tool: tool_name,
+    file: filePath || '-',
+    action: result?.action || 'pass',
+    prefix: result?.prefix || '-',
+    reason: result?.reason || '-',
+  };
+  writeLog(logEntry);
 
   if (!result || result.action === 'pass') {
     process.exit(0);
