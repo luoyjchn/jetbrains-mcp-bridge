@@ -192,7 +192,7 @@ async function main() {
 
   // 日志记录
   const logEntry = {
-    ts: new Date().toISOString(),
+    ts: new Date().toLocaleString('sv-SE', { hour12: false }),
     tool: tool_name,
     file: filePath || '-',
     action: result?.action || 'pass',
