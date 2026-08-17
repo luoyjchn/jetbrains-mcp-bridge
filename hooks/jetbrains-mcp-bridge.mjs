@@ -110,7 +110,11 @@ async function probeMcp(mcp) {
   const results = await Promise.all(ports.map(probePort));
 
   const status = {};
-  names.forEach((name, i) => { status[`mcp__${name}`] = results[i]; });
+  names.forEach((name, i) => {
+    // 标准化为 mcp__JetBrains-XXX__ 格式（双尾下划线）
+    const suffix = name.endsWith('__') ? '' : '__';
+    status[`mcp__${name}${suffix}`] = results[i];
+  });
   writeCache(status, mcp.mtime);
   return status;
 }
