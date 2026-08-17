@@ -16,14 +16,14 @@ const pluginData = process.env.CLAUDE_PLUGIN_DATA
 const CACHE_FILE = resolve(pluginData, 'session.json');
 const LOG_FILE = resolve(pluginData, 'hook.log');
 const LOG_MAX_SIZE = 1024 * 1024; // 1MB
-const DEBUG = process.env.CLAUDE_PLUGIN_OPTION_DEBUG === 'true';
 
 /**
  * Append a JSONL log entry. Auto-rotates when file exceeds LOG_MAX_SIZE.
- * Only writes when CLAUDE_PLUGIN_OPTION_DEBUG is 'true'.
+ * @param {object} entry
+ * @param {boolean} enabled - from config.debug
  */
-function writeLog(entry) {
-  if (!DEBUG) return;
+function writeLog(entry, enabled) {
+  if (!enabled) return;
   try {
     mkdirSync(pluginData, { recursive: true });
     if (existsSync(LOG_FILE)) {
@@ -199,7 +199,7 @@ async function main() {
     prefix: result?.prefix || '-',
     reason: result?.reason || '-',
   };
-  writeLog(logEntry);
+  writeLog(logEntry, config.debug);
 
   if (!result || result.action === 'pass') {
     process.exit(0);
