@@ -1,7 +1,7 @@
 {
   "name": "jetbrains-mcp-bridge",
   "displayName": "JetBrains MCP Bridge",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Bridge JetBrains IDE features to Claude Code via MCP",
   "author": {
     "name": "luoyjchn"
@@ -19,5 +19,12 @@
   "defaultEnabled": true,
   "skills": [
     "./skills/setup/"
-  ]
+  ],
+  "userConfig": {
+    "debug": {
+      "type": "boolean",
+      "default": "false",
+      "description": "Enable hook logging to {CLAUDE_PLUGIN_DATA}/hook.log"
+    }
+  }
 }
