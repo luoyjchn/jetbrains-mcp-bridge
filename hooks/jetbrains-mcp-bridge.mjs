@@ -1,4 +1,4 @@
-import { loadConfig, evaluate } from '../src/core.mjs';
+import { loadConfig, evaluate, extractPathFromCommand } from '../src/core.mjs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createConnection } from 'node:net';
@@ -16,6 +16,13 @@ const pluginData = process.env.CLAUDE_PLUGIN_DATA
 const CACHE_FILE = resolve(pluginData, 'session.json');
 const LOG_FILE = resolve(pluginData, 'hook.log');
 const LOG_MAX_SIZE = 1024 * 1024; // 1MB
+
+/**
+ * Local timestamp in sv-SE format (same as writeLog entries).
+ */
+function ts() {
+  return new Date().toLocaleString('sv-SE', { hour12: false });
+}
 
 /**
  * Append a JSONL log entry. Auto-rotates when file exceeds LOG_MAX_SIZE.
@@ -161,38 +168,100 @@ function readStdin() {
  * Claude Code PreToolUse hook entry point.
  */
 async function main() {
+  const hookStart = Date.now();
+
+  // ① 入口：接收事件
   let raw;
-  try { raw = await readStdin(); } catch { process.exit(0); }
+  try { raw = await readStdin(); } catch (e) {
+    // 无法读取 stdin，直接退出（不写日志，因为无法获取 debug 状态）
+    process.exit(0);
+  }
 
   let payload;
-  try { payload = JSON.parse(raw); } catch { process.exit(0); }
+  try { payload = JSON.parse(raw); } catch {
+    process.exit(0);
+  }
 
   const { tool_name, tool_input = {}, file_path, cwd } = payload;
-  const filePath = file_path || tool_input?.file_path || '';
+  const inputKeys = Object.keys(tool_input);
 
+  // 提前加载配置以获取 debug 开关
   const projectDir = process.env.CLAUDE_PROJECT_DIR || cwd || null;
   const config = loadConfig(projectDir, pluginRoot);
   config._cwd = cwd || '';
+
+  // 所有后续日志均受 config.debug 控制
+  writeLog({ ts: ts(), step: 'HOOK-START', tool: tool_name || '(null)', inputKeys }, config.debug);
+
+  // ② 路径解析
+  const rawPath = file_path || tool_input?.file_path || tool_input?.path || '';
+  let pathSource = 'none';
+  if (file_path) pathSource = 'file_path';
+  else if (tool_input?.file_path) pathSource = 'tool_input.file_path';
+  else if (tool_input?.path) pathSource = 'tool_input.path';
+
+  // Bash 命令中的路径提取
+  let extractedPath = '';
+  if (tool_name === 'Bash' && tool_input?.command) {
+    extractedPath = extractPathFromCommand(tool_input.command) || '';
+    if (extractedPath) pathSource = 'bash_command';
+  }
+
+  const filePath = rawPath || extractedPath || '';
+  writeLog({ ts: ts(), step: 'HOOK-PATH', source: pathSource, rawPath: rawPath || '-', extractedPath: extractedPath || '-', resolved: filePath || '-' }, config.debug);
+
+  // ③ 配置加载
+  const configSource = [];
+  try { if (existsSync(resolve(pluginRoot, 'config', 'default-global.json5'))) configSource.push('plugin-default'); } catch {}
+  try { if (existsSync(resolve(homedir(), '.claude', 'jetbrains-mcp-bridge.json5'))) configSource.push('user-global'); } catch {}
+  if (projectDir) {
+    try { if (existsSync(resolve(projectDir, '.claude', 'jetbrains-mcp-bridge.json5'))) configSource.push('project'); } catch {}
+  }
+  writeLog({
+    ts: ts(), step: 'HOOK-CONFIG',
+    sources: configSource,
+    enabled: config.enabled,
+    debug: config.debug,
+    projectPath: config.projectPath || '-',
+    hasBashPatterns: Array.isArray(config.bashPatterns),
+    bashPatternCount: config.bashPatterns?.length ?? 0,
+    toolMapKeys: config.toolMap ? Object.keys(config.toolMap) : [],
+    hasMcpMapping: !!(config.mcpMapping && Object.keys(config.mcpMapping).length > 0),
+  }, config.debug);
 
   // 获取 .mcp.json 的 mtime 用于缓存失效判断
   const mcpJson = readMcpJson();
   const mcpMtime = mcpJson?.mtime || null;
 
-  // 读取缓存（mtime 感知：.mcp.json 变化时自动失效）
+  // ④ MCP 探测 / 缓存
   let cache = readCache(mcpMtime);
+  let cacheSource = 'probe';
   if (!cache) {
-    // 无缓存或已失效，重新探测
     const status = await probeMcp(mcpJson);
     config._mcpStatus = status;
+    writeLog({ ts: ts(), step: 'HOOK-MCP', source: 'probe', serverCount: Object.keys(status).length, servers: Object.entries(status).map(([k, v]) => `${k}=${v}`) }, config.debug);
   } else {
     config._mcpStatus = cache.status || {};
+    cacheSource = 'cache';
+    writeLog({ ts: ts(), step: 'HOOK-MCP', source: 'cache', serverCount: Object.keys(cache.status || {}).length }, config.debug);
   }
 
-  const result = evaluate(config, tool_name, tool_input, filePath);
+  // ⑤ 拦截判断（传入 logger 回调，evaluate 内部日志也写入 hook.log）
+  const evalLogger = config.debug
+    ? (msg) => writeLog({ ts: ts(), step: 'EVAL', msg }, true)
+    : undefined;
+  const result = evaluate(config, tool_name, tool_input, filePath, evalLogger);
+  writeLog({
+    ts: ts(), step: 'HOOK-DECISION',
+    action: result?.action || 'pass',
+    reason: result?.reason || '-',
+    prefix: result?.prefix || '-',
+    suggest: result?.suggest ? (typeof result.suggest === 'string' ? result.suggest : JSON.stringify(result.suggest)) : '-',
+  }, config.debug);
 
-  // 日志记录
+  // ⑥ 最终结果日志（兼容原有格式）
   const logEntry = {
-    ts: new Date().toLocaleString('sv-SE', { hour12: false }),
+    ts: ts(),
     tool: tool_name,
     file: filePath || '-',
     action: result?.action || 'pass',
@@ -202,6 +271,7 @@ async function main() {
   writeLog(logEntry, config.debug);
 
   if (!result || result.action === 'pass') {
+    writeLog({ ts: ts(), step: 'HOOK-END', result: 'pass', durationMs: Date.now() - hookStart }, config.debug);
     process.exit(0);
   }
 
@@ -210,6 +280,7 @@ async function main() {
     if (result.prefix) {
       message += ` (MCP: ${result.prefix})`;
     }
+    writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'additionalContext', message }, config.debug);
     // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
@@ -217,9 +288,11 @@ async function main() {
         additionalContext: message,
       },
     }) + '\n');
+    writeLog({ ts: ts(), step: 'HOOK-END', result: 'block', durationMs: Date.now() - hookStart }, config.debug);
     process.exit(0);
   }
 
+  writeLog({ ts: ts(), step: 'HOOK-END', result: 'exit', durationMs: Date.now() - hookStart }, config.debug);
   process.exit(0);
 }
 

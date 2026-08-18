@@ -177,23 +177,36 @@ export function isInProject(filePath, projectPath) {
  * Evaluate a tool invocation against the bridge config.
  * Pure function — no side effects, never calls process.exit().
  *
+ * @param {object} config - bridge config
+ * @param {string} toolName - Claude Code tool name
+ * @param {object} toolInput - tool input parameters
+ * @param {string} filePath - resolved file path
+ * @param {function} [logger] - optional logger callback (msg: string) => void, receives [EVAL] prefixed messages
  * @returns {{ action: "pass" } | { action: "block", reason: string, suggest: string, prefix?: string }}
  */
-export function evaluate(config, toolName, toolInput, filePath) {
-  if (config.enabled === false) return { action: "pass" };
+export function evaluate(config, toolName, toolInput, filePath, logger) {
+  const log = typeof logger === "function" ? (msg) => logger(`[EVAL] ${msg}`) : () => {};
+
+  if (config.enabled === false) {
+    log(`PASS: config.enabled=false`);
+    return { action: "pass" };
+  }
 
   // 0a. excludePatterns — hard exclude, always pass
   if (filePath && matchesAny(filePath, config.excludePatterns, config.projectPath)) {
+    log(`PASS: excluded by excludePatterns, file=${filePath}`);
     return { action: "pass" };
   }
 
   // 0b. projectPath 范围检查
   const effectiveProjectPath = config.projectPath || config._cwd || "";
   if (filePath && effectiveProjectPath && !isInProject(filePath, effectiveProjectPath)) {
+    log(`PASS: outside projectPath, file=${filePath}, projectPath=${effectiveProjectPath}`);
     return { action: "pass" };
   }
 
   const mcpStatus = config._mcpStatus || {};
+  log(`Evaluating tool=${toolName}, file=${filePath || '-'}, mcpStatus=${JSON.stringify(mcpStatus)}`);
 
   // 1. bashPatterns — only applies to Bash tool
   if (toolName === "Bash" && Array.isArray(config.bashPatterns)) {
@@ -212,12 +225,17 @@ export function evaluate(config, toolName, toolInput, filePath) {
           const online = (prefix && prefix in mcpStatus)
             ? isMcpOnline(prefix, mcpStatus)
             : hasAnyMappingMcpOnline(config.mcpMapping, mcpStatus);
-          if (!online) return { action: "pass" };
+          if (!online) {
+            log(`PASS: bashPattern matched but MCP offline, pattern=${entry.pattern}, prefix=${prefix || '-'}`);
+            return { action: "pass" };
+          }
           const result = buildBlock(entry);
           result.prefix = prefix;
+          log(`BLOCK: bashPattern matched, pattern=${entry.pattern}, prefix=${prefix || '-'}`);
           return result;
         }
       }
+      log(`PASS: Bash command matched no bashPatterns`);
     }
   }
 
@@ -228,9 +246,13 @@ export function evaluate(config, toolName, toolInput, filePath) {
     const online = (prefix && prefix in mcpStatus)
       ? isMcpOnline(prefix, mcpStatus)
       : isMcpOnline(undefined, mcpStatus);
-    if (!online) return { action: "pass" };
+    if (!online) {
+      log(`PASS: toolMap[${toolName}] found but MCP offline, prefix=${prefix || '-'}`);
+      return { action: "pass" };
+    }
     const result = buildBlock(config.toolMap[toolName]);
     result.prefix = prefix;
+    log(`BLOCK: toolMap[${toolName}] matched, prefix=${prefix || '-'}`);
     return result;
   }
 
@@ -244,14 +266,22 @@ export function evaluate(config, toolName, toolInput, filePath) {
       const mapped = config.fileTypeMap[ext];
       if (mapped) {
         // mapped 是 MCP 前缀，检查该前缀是否在线
-        if (!isMcpOnline(mapped, mcpStatus)) return { action: "pass" };
+        if (!isMcpOnline(mapped, mcpStatus)) {
+          log(`PASS: fileTypeMap[${ext}]=${mapped} but MCP offline`);
+          return { action: "pass" };
+        }
         const result = buildBlock(mapped);
         result.prefix = mapped;
+        log(`BLOCK: fileTypeMap[${ext}] matched, prefix=${mapped}`);
         return result;
       }
+      log(`PASS: ext=${ext} in sourceExtensions but no fileTypeMap entry`);
+    } else {
+      log(`PASS: tool=${toolName}, ext=${ext || '-'}, not in sourceExtensions or no ext`);
     }
   }
 
+  log(`PASS: no matching rule for tool=${toolName}, file=${filePath || '-'}`);
   return { action: "pass" };
 }
 
