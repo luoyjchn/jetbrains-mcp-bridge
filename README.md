@@ -60,7 +60,7 @@ Three layers, higher priority overrides lower:
   debug: false,
   projectPath: "/path/to/your/project",
   mcpMapping: {
-    "mcp__JetBrains-WebStorm__": ["src/**"],
+    "JetBrains-WebStorm": ["src/**"],
   },
 }
 ```
@@ -80,11 +80,12 @@ Three layers, higher priority overrides lower:
 
   // MCP prefix → glob path mapping
   // Glob: * (single segment), ** (multi), ? (single char), {a,b} (alternation), ! (exclusion)
+  // Prefix uses short name (e.g. JetBrains-IDEA), code auto-builds full MCP namespace
   mcpMapping: {
     // All files except frontend → IntelliJ IDEA
-    "mcp__JetBrains-IDEA__": ["src/main/**", "!src/main/frontend/**"],
+    "JetBrains-IDEA": ["src/main/**", "!src/main/frontend/**"],
     // Frontend files → WebStorm
-    "mcp__JetBrains-WebStorm__": "src/main/frontend/**",
+    "JetBrains-WebStorm": "src/main/frontend/**",
   },
 
   // Hard exclude patterns (never intercepted)
@@ -95,7 +96,7 @@ Three layers, higher priority overrides lower:
   ],
 
   // Fallback MCP prefix when no mcpMapping matches
-  defaultPrefix: "mcp__JetBrains-IDEA__",
+  defaultPrefix: "JetBrains-IDEA",
 
   // Bash command detection rules
   bashPatterns: [
@@ -205,11 +206,11 @@ For a monorepo with Java backend + Vue frontend:
   enabled: true,
   projectPath: "/path/to/monorepo",
   mcpMapping: {
-    "mcp__JetBrains-IDEA__": [
+    "JetBrains-IDEA": [
       "!frontend/**",
       "**",
     ],
-    "mcp__JetBrains-WebStorm__": [
+    "JetBrains-WebStorm": [
       "frontend/**",
     ],
   },
@@ -229,15 +230,15 @@ For a monorepo with Java backend + Vue frontend:
 
 | IDE | MCP Prefix | Default Port |
 |-----|-----------|-------------|
-| IntelliJ IDEA | `mcp__JetBrains-IDEA__` | 63342 |
-| WebStorm | `mcp__JetBrains-WebStorm__` | 63343 |
-| PyCharm | `mcp__JetBrains-PyCharm__` | 63344 |
-| GoLand | `mcp__JetBrains-GoLand__` | 63345 |
-| RustRover | `mcp__JetBrains-RustRover__` | 63346 |
-| CLion | `mcp__JetBrains-CLion__` | 63347 |
-| PhpStorm | `mcp__JetBrains-PhpStorm__` | 63348 |
-| RubyMine | `mcp__JetBrains-RubyMine__` | 63349 |
-| Rider | `mcp__JetBrains-Rider__` | 63350 |
+| IntelliJ IDEA | `JetBrains-IDEA` | 63342 |
+| WebStorm | `JetBrains-WebStorm` | 63343 |
+| PyCharm | `JetBrains-PyCharm` | 63344 |
+| GoLand | `JetBrains-GoLand` | 63345 |
+| RustRover | `JetBrains-RustRover` | 63346 |
+| CLion | `JetBrains-CLion` | 63347 |
+| PhpStorm | `JetBrains-PhpStorm` | 63348 |
+| RubyMine | `JetBrains-RubyMine` | 63349 |
+| Rider | `JetBrains-Rider` | 63350 |
 
 ## Development
 

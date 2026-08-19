@@ -9,10 +9,11 @@
   // MCP 前缀 → 路径 glob 映射
   // 支持：*（单层）、**（任意层）、?（单字符）、{a,b}（或）、!前缀（排除）
   // 值可以是单个 glob 字符串或 glob 数组
+  // 前缀使用短名称（如 JetBrains-IDEA），代码自动拼接完整 MCP 命名空间
   mcpMapping: {
     // 示例：
-    // "mcp__JetBrains-IDEA__": ["src/main/**", "!src/main/test/**"],
-    // "mcp__JetBrains-WebStorm__": "src/frontend/**",
+    // "JetBrains-IDEA": ["src/main/**", "!src/main/test/**"],
+    // "JetBrains-WebStorm": "src/frontend/**",
   },
   // 路径排除模式（匹配的文件路径不会被拦截）
   // 支持相对于 projectPath 的路径和绝对路径
@@ -21,8 +22,8 @@
     //    "node_modules/**",
     //    ".git/**",
   ],
-  // 默认 MCP 前缀
-  defaultPrefix: "mcp__JetBrains-",
+  // 默认 MCP 前缀（短名称，代码自动拼接完整命名空间）
+  defaultPrefix: "JetBrains-IDEA",
   // 通用 Bash 命令模式检测规则
   bashPatterns: [
     {
@@ -141,28 +142,28 @@
       },
     },
   },
-  // 文件扩展名 → MCP 前缀映射
+  // 文件扩展名 → MCP 前缀映射（短名称，代码自动拼接完整命名空间）
   fileTypeMap: {
-    ".java": "mcp__JetBrains-IDEA__",
-    ".kt": "mcp__JetBrains-IDEA__",
-    ".gradle": "mcp__JetBrains-IDEA__",
-    ".kts": "mcp__JetBrains-IDEA__",
-    ".vue": "mcp__JetBrains-WebStorm__",
-    ".ts": "mcp__JetBrains-WebStorm__",
-    ".js": "mcp__JetBrains-WebStorm__",
-    ".jsx": "mcp__JetBrains-WebStorm__",
-    ".tsx": "mcp__JetBrains-WebStorm__",
-    ".py": "mcp__JetBrains-PyCharm__",
-    ".go": "mcp__JetBrains-GoLand__",
-    ".rs": "mcp__JetBrains-RustRover__",
-    ".c": "mcp__JetBrains-CLion__",
-    ".cpp": "mcp__JetBrains-CLion__",
-    ".h": "mcp__JetBrains-CLion__",
-    ".hpp": "mcp__JetBrains-CLion__",
-    ".php": "mcp__JetBrains-PhpStorm__",
-    ".rb": "mcp__JetBrains-RubyMine__",
-    ".cs": "mcp__JetBrains-Rider__",
-    ".vb": "mcp__JetBrains-Rider__",
+    ".java": "JetBrains-IDEA",
+    ".kt": "JetBrains-IDEA",
+    ".gradle": "JetBrains-IDEA",
+    ".kts": "JetBrains-IDEA",
+    ".vue": "JetBrains-WebStorm",
+    ".ts": "JetBrains-WebStorm",
+    ".js": "JetBrains-WebStorm",
+    ".jsx": "JetBrains-WebStorm",
+    ".tsx": "JetBrains-WebStorm",
+    ".py": "JetBrains-PyCharm",
+    ".go": "JetBrains-GoLand",
+    ".rs": "JetBrains-RustRover",
+    ".c": "JetBrains-CLion",
+    ".cpp": "JetBrains-CLion",
+    ".h": "JetBrains-CLion",
+    ".hpp": "JetBrains-CLion",
+    ".php": "JetBrains-PhpStorm",
+    ".rb": "JetBrains-RubyMine",
+    ".cs": "JetBrains-Rider",
+    ".vb": "JetBrains-Rider",
   },
   // 要拦截的源码扩展名白名单
   sourceExtensions: [

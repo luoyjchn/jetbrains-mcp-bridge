@@ -16,6 +16,16 @@ const pluginData = process.env.CLAUDE_PLUGIN_DATA
 const CACHE_FILE = resolve(pluginData, 'session.json');
 const LOG_FILE = resolve(pluginData, 'hook.log');
 const LOG_MAX_SIZE = 1024 * 1024; // 1MB
+const PLUGIN_NAME = 'jetbrains-mcp-bridge';
+
+/**
+ * Build the full MCP tool namespace prefix for a server name.
+ * e.g. "JetBrains-IDEA" → "mcp__plugin_jetbrains-mcp-bridge_JetBrains-IDEA__"
+ */
+function buildFullPrefix(serverName) {
+  const name = serverName.endsWith('__') ? serverName.slice(0, -2) : serverName;
+  return `mcp__plugin_${PLUGIN_NAME}_${name}__`;
+}
 
 /**
  * Local timestamp in sv-SE format (same as writeLog entries).
@@ -143,9 +153,9 @@ async function probeMcp(mcp) {
 
   const status = {};
   names.forEach((name, i) => {
-    // 标准化为 mcp__JetBrains-XXX__ 格式（双尾下划线）
-    const suffix = name.endsWith('__') ? '' : '__';
-    status[`mcp__${name}${suffix}`] = results[i];
+    // 使用短名称作为 status key（如 "JetBrains-IDEA"）
+    const shortName = name.endsWith('__') ? name.slice(0, -2) : name;
+    status[shortName] = results[i];
   });
   writeCache(status, mcp.mtime);
   return status;
@@ -259,13 +269,14 @@ async function main() {
     suggest: result?.suggest ? (typeof result.suggest === 'string' ? result.suggest : JSON.stringify(result.suggest)) : '-',
   }, config.debug);
 
-  // ⑥ 最终结果日志（兼容原有格式）
+  // ⑥ 最终结果日志（兼容原有格式，prefix 使用短名称）
   const logEntry = {
     ts: ts(),
     tool: tool_name,
     file: filePath || '-',
     action: result?.action || 'pass',
     prefix: result?.prefix || '-',
+    fullPrefix: result?.prefix ? buildFullPrefix(result.prefix) : '-',
     reason: result?.reason || '-',
   };
   writeLog(logEntry, config.debug);
@@ -276,9 +287,11 @@ async function main() {
   }
 
   if (result.action === 'block') {
+    // 使用完整 MCP 前缀（mcp__plugin_jetbrains-mcp-bridge_XXX__）用于 suggest 消息
+    const fullPrefix = result.prefix ? buildFullPrefix(result.prefix) : '';
     let message = `[JetBrains MCP Bridge] ${result.reason}。建议使用 ${result.suggest}。`;
-    if (result.prefix) {
-      message += ` (MCP: ${result.prefix})`;
+    if (fullPrefix) {
+      message += ` (MCP: ${fullPrefix})`;
     }
     writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'additionalContext', message }, config.debug);
     // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具

@@ -58,7 +58,7 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
   debug: false,
   projectPath: "/path/to/your/project",
   mcpMapping: {
-    "mcp__JetBrains-WebStorm__": ["src/**"],
+    "JetBrains-WebStorm": ["src/**"],
   },
 }
 ```
@@ -78,11 +78,12 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
 
   // MCP 前缀 → 路径 glob 映射
   // Glob 语法：*（单层）、**（任意层）、?（单字符）、{a,b}（或）、!（排除）
+  // 前缀使用短名称（如 JetBrains-IDEA），代码自动拼接完整 MCP 命名空间
   mcpMapping: {
     // 除前端外的所有文件 → IntelliJ IDEA
-    "mcp__JetBrains-IDEA__": ["src/main/**", "!src/main/frontend/**"],
+    "JetBrains-IDEA": ["src/main/**", "!src/main/frontend/**"],
     // 前端文件 → WebStorm
-    "mcp__JetBrains-WebStorm__": "src/main/frontend/**",
+    "JetBrains-WebStorm": "src/main/frontend/**",
   },
 
   // 路径排除模式（匹配的文件不会被拦截）
@@ -93,7 +94,7 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
   ],
 
   // 当 mcpMapping 无匹配时的兜底 MCP 前缀
-  defaultPrefix: "mcp__JetBrains-IDEA__",
+  defaultPrefix: "JetBrains-IDEA",
 
   // Bash 命令检测规则
   bashPatterns: [
@@ -203,11 +204,11 @@ Hook 使用 **exit 0** + `additionalContext` — 它建议使用 MCP 工具，�
   enabled: true,
   projectPath: "/path/to/monorepo",
   mcpMapping: {
-    "mcp__JetBrains-IDEA__": [
+    "JetBrains-IDEA": [
       "!frontend/**",
       "**",
     ],
-    "mcp__JetBrains-WebStorm__": [
+    "JetBrains-WebStorm": [
       "frontend/**",
     ],
   },
@@ -227,15 +228,15 @@ Hook 使用 **exit 0** + `additionalContext` — 它建议使用 MCP 工具，�
 
 | IDE | MCP 前缀 | 默认端口 |
 |-----|---------|---------|
-| IntelliJ IDEA | `mcp__JetBrains-IDEA__` | 63342 |
-| WebStorm | `mcp__JetBrains-WebStorm__` | 63343 |
-| PyCharm | `mcp__JetBrains-PyCharm__` | 63344 |
-| GoLand | `mcp__JetBrains-GoLand__` | 63345 |
-| RustRover | `mcp__JetBrains-RustRover__` | 63346 |
-| CLion | `mcp__JetBrains-CLion__` | 63347 |
-| PhpStorm | `mcp__JetBrains-PhpStorm__` | 63348 |
-| RubyMine | `mcp__JetBrains-RubyMine__` | 63349 |
-| Rider | `mcp__JetBrains-Rider__` | 63350 |
+| IntelliJ IDEA | `JetBrains-IDEA` | 63342 |
+| WebStorm | `JetBrains-WebStorm` | 63343 |
+| PyCharm | `JetBrains-PyCharm` | 63344 |
+| GoLand | `JetBrains-GoLand` | 63345 |
+| RustRover | `JetBrains-RustRover` | 63346 |
+| CLion | `JetBrains-CLion` | 63347 |
+| PhpStorm | `JetBrains-PhpStorm` | 63348 |
+| RubyMine | `JetBrains-RubyMine` | 63349 |
+| Rider | `JetBrains-Rider` | 63350 |
 
 ## 开发
 

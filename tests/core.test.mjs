@@ -2,7 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { evaluate, deepMerge, parseJson5, globToRegex, resolvePrefix, matchesAny, isMcpOnline, isInProject, normalizePath } from "../src/core.mjs";
 
-const mcpOnline = { _mcpStatus: { "mcp__JetBrains-IDEA": true, "mcp__JetBrains-WebStorm": true } };
+// 统一使用短名称（如 "JetBrains-IDEA"）作为 status key
+const mcpOnline = { _mcpStatus: { "JetBrains-IDEA": true, "JetBrains-WebStorm": true } };
 const mcpOffline = { _mcpStatus: {} };
 
 describe("evaluate()", () => {
@@ -34,12 +35,12 @@ describe("evaluate()", () => {
   });
 
   it("passes tool when specific MCP offline", () => {
-    const config = { _mcpStatus: { "mcp__JetBrains-IDEA": false }, toolMap: { Grep: { reason: "搜索", suggest: { _default: "search_regex" } } }, defaultPrefix: "JetBrains-IDEA" };
+    const config = { _mcpStatus: { "JetBrains-IDEA": false }, toolMap: { Grep: { reason: "搜索", suggest: { _default: "search_regex" } } }, defaultPrefix: "JetBrains-IDEA" };
     assert.deepStrictEqual(evaluate(config, "Grep", {}), { action: "pass" });
   });
 
   it("blocks tool when specific MCP online", () => {
-    const config = { _mcpStatus: { "mcp__JetBrains-IDEA": true, "mcp__JetBrains-WebStorm": false }, toolMap: { Grep: { reason: "搜索", suggest: { _default: "search_regex" } } }, defaultPrefix: "JetBrains-IDEA" };
+    const config = { _mcpStatus: { "JetBrains-IDEA": true, "JetBrains-WebStorm": false }, toolMap: { Grep: { reason: "搜索", suggest: { _default: "search_regex" } } }, defaultPrefix: "JetBrains-IDEA" };
     assert.equal(evaluate(config, "Grep", {}).action, "block");
   });
 
@@ -48,12 +49,12 @@ describe("evaluate()", () => {
   });
 
   it("Write tool blocks when MCP online", () => {
-    const config = { ...mcpOnline, sourceExtensions: [".java"], fileTypeMap: { ".java": "mcp__JetBrains-IDEA" } };
+    const config = { ...mcpOnline, sourceExtensions: [".java"], fileTypeMap: { ".java": "JetBrains-IDEA" } };
     assert.equal(evaluate(config, "Write", {}, "/src/Foo.java").action, "block");
   });
 
   it("Write tool passes when specific MCP offline", () => {
-    const config = { _mcpStatus: { "mcp__JetBrains-IDEA": false }, sourceExtensions: [".java"], fileTypeMap: { ".java": "mcp__JetBrains-IDEA" } };
+    const config = { _mcpStatus: { "JetBrains-IDEA": false }, sourceExtensions: [".java"], fileTypeMap: { ".java": "JetBrains-IDEA" } };
     assert.deepStrictEqual(evaluate(config, "Write", {}, "/src/Foo.java"), { action: "pass" });
   });
 
@@ -94,11 +95,11 @@ describe("evaluate()", () => {
 describe("isMcpOnline()", () => {
   it("returns false for empty mcpStatus", () => { assert.equal(isMcpOnline(undefined, {}), false); });
   it("returns false for null mcpStatus", () => { assert.equal(isMcpOnline(undefined, null), false); });
-  it("returns true when prefix is online", () => { assert.equal(isMcpOnline("mcp__JetBrains-IDEA", { "mcp__JetBrains-IDEA": true }), true); });
-  it("returns false when prefix is offline", () => { assert.equal(isMcpOnline("mcp__JetBrains-IDEA", { "mcp__JetBrains-IDEA": false }), false); });
-  it("returns false when prefix not in map", () => { assert.equal(isMcpOnline("mcp__JetBrains-IDEA", { "mcp__JetBrains-WebStorm": true }), false); });
-  it("returns true when any MCP online (no prefix)", () => { assert.equal(isMcpOnline(undefined, { "mcp__JetBrains-IDEA": true, "mcp__JetBrains-WebStorm": false }), true); });
-  it("returns false when all MCP offline (no prefix)", () => { assert.equal(isMcpOnline(undefined, { "mcp__JetBrains-IDEA": false, "mcp__JetBrains-WebStorm": false }), false); });
+  it("returns true when prefix is online", () => { assert.equal(isMcpOnline("JetBrains-IDEA", { "JetBrains-IDEA": true }), true); });
+  it("returns false when prefix is offline", () => { assert.equal(isMcpOnline("JetBrains-IDEA", { "JetBrains-IDEA": false }), false); });
+  it("returns false when prefix not in map", () => { assert.equal(isMcpOnline("JetBrains-IDEA", { "JetBrains-WebStorm": true }), false); });
+  it("returns true when any MCP online (no prefix)", () => { assert.equal(isMcpOnline(undefined, { "JetBrains-IDEA": true, "JetBrains-WebStorm": false }), true); });
+  it("returns false when all MCP offline (no prefix)", () => { assert.equal(isMcpOnline(undefined, { "JetBrains-IDEA": false, "JetBrains-WebStorm": false }), false); });
 });
 
 describe("isInProject()", () => {
@@ -121,12 +122,12 @@ describe("globToRegex()", () => {
 });
 
 describe("resolvePrefix()", () => {
-  const mcpMapping = { "mcp__JetBrains-IDEA": "src/main/**/*.java", "mcp__JetBrains-WebStorm": "src/frontend/**" };
-  it("matches file path to correct prefix", () => { assert.equal(resolvePrefix("src/main/com/App.java", mcpMapping, "default"), "mcp__JetBrains-IDEA"); });
-  it("returns defaultPrefix when no match", () => { assert.equal(resolvePrefix("docs/README.md", mcpMapping, "mcp__JetBrains-IDE"), "mcp__JetBrains-IDE"); });
+  const mcpMapping = { "JetBrains-IDEA": "src/main/**/*.java", "JetBrains-WebStorm": "src/frontend/**" };
+  it("matches file path to correct prefix", () => { assert.equal(resolvePrefix("src/main/com/App.java", mcpMapping, "default"), "JetBrains-IDEA"); });
+  it("returns defaultPrefix when no match", () => { assert.equal(resolvePrefix("docs/README.md", mcpMapping, "JetBrains-IDE"), "JetBrains-IDE"); });
   it("supports array patterns with exclusion", () => {
-    const mapping = { "mcp__JetBrains-IDEA": ["src/**", "!test/**"] };
-    assert.equal(resolvePrefix("src/main/App.java", mapping, "default"), "mcp__JetBrains-IDEA");
+    const mapping = { "JetBrains-IDEA": ["src/**", "!test/**"] };
+    assert.equal(resolvePrefix("src/main/App.java", mapping, "default"), "JetBrains-IDEA");
     assert.equal(resolvePrefix("test/AppTest.java", mapping, "default"), "default");
   });
 });

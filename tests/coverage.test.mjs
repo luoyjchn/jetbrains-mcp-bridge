@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 const configRaw = readFileSync(resolve(projectRoot, "config", "default-global.json5"), "utf-8");
 const config = parseJson5(configRaw);
-config._mcpStatus = { "mcp__JetBrains-IDEA": true, "mcp__JetBrains-WebStorm": true, "mcp__JetBrains-PyCharm": true, "mcp__JetBrains-GoLand": true, "mcp__JetBrains-RustRover": true, "mcp__JetBrains-CLion": true, "mcp__JetBrains-PhpStorm": true, "mcp__JetBrains-RubyMine": true, "mcp__JetBrains-Rider": true };
+config._mcpStatus = { "JetBrains-IDEA": true, "JetBrains-WebStorm": true, "JetBrains-PyCharm": true, "JetBrains-GoLand": true, "JetBrains-RustRover": true, "JetBrains-CLion": true, "JetBrains-PhpStorm": true, "JetBrains-RubyMine": true, "JetBrains-Rider": true };
 
 describe("Feature coverage: bashPatterns", () => {
   const bashTests = [
