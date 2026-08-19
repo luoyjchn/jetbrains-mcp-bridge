@@ -9,11 +9,11 @@
   // MCP 前缀 → 路径 glob 映射
   // 支持：*（单层）、**（任意层）、?（单字符）、{a,b}（或）、!前缀（排除）
   // 值可以是单个 glob 字符串或 glob 数组
-  // 前缀使用短名称（如 JetBrains-IDEA），代码自动拼接完整 MCP 命名空间
+  // 前缀使用短名称（如 IDEA），代码自动拼接完整 MCP 命名空间
   mcpMapping: {
     // 示例：
-    // "JetBrains-IDEA": ["src/main/**", "!src/main/test/**"],
-    // "JetBrains-WebStorm": "src/frontend/**",
+    // "IDEA": ["src/main/**", "!src/main/test/**"],
+    // "WebStorm": "src/frontend/**",
   },
   // 路径排除模式（匹配的文件路径不会被拦截）
   // 支持相对于 projectPath 的路径和绝对路径
@@ -23,7 +23,7 @@
     //    ".git/**",
   ],
   // 默认 MCP 前缀（短名称，代码自动拼接完整命名空间）
-  defaultPrefix: "JetBrains-IDEA",
+  defaultPrefix: "IDEA",
   // 通用 Bash 命令模式检测规则
   bashPatterns: [
     {

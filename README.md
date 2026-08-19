@@ -9,7 +9,7 @@ Claude Code plugin that intercepts native tools (Read, Write, Edit, Grep, Glob, 
 - **Tool Interception** — Detects Read/Write/Edit/Grep/Glob calls and suggests IDE-native MCP tools
 - **Bash Pattern Detection** — Recognizes `grep`, `find`, `mvn`, `gradle`, `npm run` etc. and suggests IDE alternatives
 - **Multi-IDE Support** — IntelliJ IDEA, WebStorm, PyCharm, GoLand, RustRover, CLion, PhpStorm, RubyMine, Rider
-- **Smart Routing** — Routes files to the correct IDE via `mcpMapping` (path globs) and `fileTypeMap` (extensions)
+- **Smart Routing** — Routes files to the correct IDE via `mcpMapping` (path globs)
 - **Soft Suggest** — Non-blocking: Claude sees the suggestion and decides whether to use MCP tools
 - **MCP Health Check** — Only suggests MCP tools when the IDE is actually running and reachable
 - **JSONL Logging** — Optional hook decision logging with auto-rotation
@@ -29,7 +29,7 @@ After installation, restart your Claude Code session, then run:
 This interactive command will:
 1. Copy the default config to `~/.claude/jetbrains-mcp-bridge.json5`
 2. Copy the project config to `.claude/jetbrains-mcp-bridge.json5` with your project path
-3. Ask which JetBrains IDEs you use and their MCP ports
+3. Ask which JetBrains IDEs you use (multi-select) and their MCP ports
 4. Generate `.mcp.json` with your MCP server entries
 
 ## Prerequisites
@@ -60,7 +60,7 @@ Three layers, higher priority overrides lower:
   debug: false,
   projectPath: "/path/to/your/project",
   mcpMapping: {
-    "JetBrains-WebStorm": ["src/**"],
+    "WebStorm": ["src/**"],
   },
 }
 ```
@@ -80,12 +80,12 @@ Three layers, higher priority overrides lower:
 
   // MCP prefix → glob path mapping
   // Glob: * (single segment), ** (multi), ? (single char), {a,b} (alternation), ! (exclusion)
-  // Prefix uses short name (e.g. JetBrains-IDEA), code auto-builds full MCP namespace
+  // Prefix uses short name (e.g. IDEA), code auto-builds full MCP namespace
   mcpMapping: {
     // All files except frontend → IntelliJ IDEA
-    "JetBrains-IDEA": ["src/main/**", "!src/main/frontend/**"],
+    "IDEA": ["src/main/**", "!src/main/frontend/**"],
     // Frontend files → WebStorm
-    "JetBrains-WebStorm": "src/main/frontend/**",
+    "WebStorm": "src/main/frontend/**",
   },
 
   // Hard exclude patterns (never intercepted)
@@ -96,7 +96,7 @@ Three layers, higher priority overrides lower:
   ],
 
   // Fallback MCP prefix when no mcpMapping matches
-  defaultPrefix: "JetBrains-IDEA",
+  defaultPrefix: "IDEA",
 
   // Bash command detection rules
   bashPatterns: [
@@ -121,36 +121,16 @@ Three layers, higher priority overrides lower:
     Grep:  { reason: "Search code", suggest: { _default: "search_regex" } },
   },
 
-  // File extension → MCP prefix (for Read/Write/Edit tools)
-  fileTypeMap: {
-    ".java": "mcp__JetBrains-IDEA__",
-    ".kt":   "mcp__JetBrains-IDEA__",
-    ".vue":  "mcp__JetBrains-WebStorm__",
-    ".ts":   "mcp__JetBrains-WebStorm__",
-    ".js":   "mcp__JetBrains-WebStorm__",
-    ".py":   "mcp__JetBrains-PyCharm__",
-    ".go":   "mcp__JetBrains-GoLand__",
-    ".rs":   "mcp__JetBrains-RustRover__",
-    ".c":    "mcp__JetBrains-CLion__",
-    ".cpp":  "mcp__JetBrains-CLion__",
-    ".php":  "mcp__JetBrains-PhpStorm__",
-    ".rb":   "mcp__JetBrains-RubyMine__",
-    ".cs":   "mcp__JetBrains-Rider__",
-  },
-
-  // Source extension whitelist (empty = all extensions)
-  sourceExtensions: [],
-
   // Config schema version
-  configVersion: 1,
+  configVersion: 2,
 }
 ```
 
 ### MCP Server Name Convention
 
-MCP server names in `.mcp.json` use `JetBrains-XXX` format (e.g., `JetBrains-WebStorm`).
-Config keys use `mcp__JetBrains-XXX__` format (with `mcp__` prefix and `__` suffix).
-The hook automatically normalizes names for matching.
+MCP server names in `.mcp.json` use short names (e.g., `IDEA`, `WebStorm`).
+Config keys use the same short names.
+The hook auto-builds the full MCP namespace: `mcp__plugin_jetbrains-mcp-bridge_<name>__`
 
 ## How It Works
 
@@ -165,10 +145,8 @@ PreToolUse hook runs
         ├── 3. projectPath scope check → outside? → pass
         ├── 4. Bash: bashPatterns regex match
         │   └── extract path from command → resolvePrefix → check MCP online
-        ├── 5. toolMap: direct tool match
-        │   └── resolvePrefix(filePath) → check MCP online
-        └── 6. fileTypeMap: extension match (Read/Write/Edit)
-            └── check specific MCP online
+        └── 5. toolMap: direct tool match
+            └── resolvePrefix(filePath) → check MCP online
         │
         ▼
   exit 0 + additionalContext (soft suggest)
@@ -192,8 +170,8 @@ Enable logging in your config file:
 Log file: `{CLAUDE_PLUGIN_DATA}/hook.log` (JSONL format, auto-rotates at 1MB)
 
 ```json
-{"ts":"2026-08-14 20:30:45","tool":"Read","file":"src/app.ts","action":"suggest","prefix":"mcp__JetBrains-WebStorm__","reason":"Read file"}
-{"ts":"2026-08-14 20:30:46","tool":"Bash","file":"-","action":"suggest","prefix":"mcp__JetBrains-IDEA__","reason":"Code search"}
+{"ts":"2026-08-14 20:30:45","tool":"Read","file":"src/app.ts","action":"suggest","prefix":"WebStorm","reason":"Read file"}
+{"ts":"2026-08-14 20:30:46","tool":"Bash","file":"-","action":"suggest","prefix":"IDEA","reason":"Code search"}
 {"ts":"2026-08-14 20:30:47","tool":"Terminal","file":"-","action":"pass","prefix":"-","reason":"-"}
 ```
 
@@ -206,11 +184,11 @@ For a monorepo with Java backend + Vue frontend:
   enabled: true,
   projectPath: "/path/to/monorepo",
   mcpMapping: {
-    "JetBrains-IDEA": [
+    "IDEA": [
       "!frontend/**",
       "**",
     ],
-    "JetBrains-WebStorm": [
+    "WebStorm": [
       "frontend/**",
     ],
   },
@@ -230,15 +208,15 @@ For a monorepo with Java backend + Vue frontend:
 
 | IDE | MCP Prefix | Default Port |
 |-----|-----------|-------------|
-| IntelliJ IDEA | `JetBrains-IDEA` | 63342 |
-| WebStorm | `JetBrains-WebStorm` | 63343 |
-| PyCharm | `JetBrains-PyCharm` | 63344 |
-| GoLand | `JetBrains-GoLand` | 63345 |
-| RustRover | `JetBrains-RustRover` | 63346 |
-| CLion | `JetBrains-CLion` | 63347 |
-| PhpStorm | `JetBrains-PhpStorm` | 63348 |
-| RubyMine | `JetBrains-RubyMine` | 63349 |
-| Rider | `JetBrains-Rider` | 63350 |
+| IntelliJ IDEA | `IDEA` | 63342 |
+| WebStorm | `WebStorm` | 63343 |
+| PyCharm | `PyCharm` | 63344 |
+| GoLand | `GoLand` | 63345 |
+| RustRover | `RustRover` | 63346 |
+| CLion | `CLion` | 63347 |
+| PhpStorm | `PhpStorm` | 63348 |
+| RubyMine | `RubyMine` | 63349 |
+| Rider | `Rider` | 63350 |
 
 ## Development
 

@@ -13,8 +13,8 @@
   // 支持 *（单层）、**（任意层）、?（单字符）、{a,b}（或）、!前缀（排除）
   mcpMapping: {
     // 示例：将 src/main 下所有文件映射到 IntelliJ IDEA
-    // "JetBrains-IDEA": ["src/main/**", "!src/main/test/**"],
+    // "IDEA": ["src/main/**", "!src/main/test/**"],
     // 将 src/frontend 映射到 WebStorm
-    // "JetBrains-WebStorm": "src/frontend/**",
+    // "WebStorm": "src/frontend/**",
   },
 }

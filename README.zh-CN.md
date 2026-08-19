@@ -7,7 +7,7 @@
 - **工具拦截** — 检测 Read/Write/Edit/Grep/Glob 调用，建议使用 IDE 原生 MCP 工具
 - **Bash 命令检测** — 识别 `grep`、`find`、`mvn`、`gradle`、`npm run` 等命令并建议 IDE 替代方案
 - **多 IDE 支持** — IntelliJ IDEA、WebStorm、PyCharm、GoLand、RustRover、CLion、PhpStorm、RubyMine、Rider
-- **智能路由** — 通过 `mcpMapping`（路径 glob）和 `fileTypeMap`（文件扩展名）将文件路由到正确的 IDE
+- **智能路由** — 通过 `mcpMapping`（路径 glob）将文件路由到正确的 IDE
 - **软提示** — 非阻断式：Claude 看到建议后自行决定是否使用 MCP 工具
 - **MCP 健康检查** — 仅在 IDE 实际运行且可达时才建议 MCP 工具
 - **JSONL 日志** — 可选的 hook 决策日志，支持自动轮转
@@ -27,7 +27,7 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
 此交互式命令会：
 1. 复制默认配置到 `~/.claude/jetbrains-mcp-bridge.json5`
 2. 复制项目配置到 `.claude/jetbrains-mcp-bridge.json5` 并设置项目路径
-3. 询问你使用哪些 JetBrains IDE 及其 MCP 端口
+3. 询问你使用哪些 JetBrains IDE（多选）及其 MCP 端口
 4. 生成包含 MCP 服务器条目的 `.mcp.json`
 
 ## 前置条件
@@ -58,7 +58,7 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
   debug: false,
   projectPath: "/path/to/your/project",
   mcpMapping: {
-    "JetBrains-WebStorm": ["src/**"],
+    "WebStorm": ["src/**"],
   },
 }
 ```
@@ -78,12 +78,12 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
 
   // MCP 前缀 → 路径 glob 映射
   // Glob 语法：*（单层）、**（任意层）、?（单字符）、{a,b}（或）、!（排除）
-  // 前缀使用短名称（如 JetBrains-IDEA），代码自动拼接完整 MCP 命名空间
+  // 前缀使用短名称（如 IDEA），代码自动拼接完整 MCP 命名空间
   mcpMapping: {
     // 除前端外的所有文件 → IntelliJ IDEA
-    "JetBrains-IDEA": ["src/main/**", "!src/main/frontend/**"],
+    "IDEA": ["src/main/**", "!src/main/frontend/**"],
     // 前端文件 → WebStorm
-    "JetBrains-WebStorm": "src/main/frontend/**",
+    "WebStorm": "src/main/frontend/**",
   },
 
   // 路径排除模式（匹配的文件不会被拦截）
@@ -94,7 +94,7 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
   ],
 
   // 当 mcpMapping 无匹配时的兜底 MCP 前缀
-  defaultPrefix: "JetBrains-IDEA",
+  defaultPrefix: "IDEA",
 
   // Bash 命令检测规则
   bashPatterns: [
@@ -119,36 +119,16 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
     Grep:  { reason: "搜索项目代码", suggest: { _default: "search_regex" } },
   },
 
-  // 文件扩展名 → MCP 前缀（用于 Read/Write/Edit 工具）
-  fileTypeMap: {
-    ".java": "mcp__JetBrains-IDEA__",
-    ".kt":   "mcp__JetBrains-IDEA__",
-    ".vue":  "mcp__JetBrains-WebStorm__",
-    ".ts":   "mcp__JetBrains-WebStorm__",
-    ".js":   "mcp__JetBrains-WebStorm__",
-    ".py":   "mcp__JetBrains-PyCharm__",
-    ".go":   "mcp__JetBrains-GoLand__",
-    ".rs":   "mcp__JetBrains-RustRover__",
-    ".c":    "mcp__JetBrains-CLion__",
-    ".cpp":  "mcp__JetBrains-CLion__",
-    ".php":  "mcp__JetBrains-PhpStorm__",
-    ".rb":   "mcp__JetBrains-RubyMine__",
-    ".cs":   "mcp__JetBrains-Rider__",
-  },
-
-  // 源码扩展名白名单（空数组 = 不限制扩展名）
-  sourceExtensions: [],
-
   // 配置 schema 版本号
-  configVersion: 1,
+  configVersion: 2,
 }
 ```
 
 ### MCP 服务器命名规范
 
-`.mcp.json` 中的服务器名使用 `JetBrains-XXX` 格式（如 `JetBrains-WebStorm`）。
-配置文件中的 key 使用 `mcp__JetBrains-XXX__` 格式（带 `mcp__` 前缀和 `__` 后缀）。
-Hook 会自动标准化名称进行匹配。
+`.mcp.json` 中的服务器名使用短名称（如 `IDEA`、`WebStorm`）。
+配置文件中的 key 使用相同的短名称。
+Hook 自动拼接完整 MCP 命名空间：`mcp__plugin_jetbrains-mcp-bridge_<name>__`
 
 ## 工作原理
 
@@ -163,10 +143,8 @@ PreToolUse hook 执行
         ├── 3. projectPath 范围检查 → 范围外? → 放行
         ├── 4. Bash: bashPatterns 正则匹配
         │   └── 从命令中提取路径 → resolvePrefix → 检查 MCP 在线状态
-        ├── 5. toolMap: 直接工具名匹配
-        │   └── resolvePrefix(filePath) → 检查 MCP 在线状态
-        └── 6. fileTypeMap: 扩展名匹配（Read/Write/Edit）
-            └── 检查对应 MCP 在线状态
+        └── 5. toolMap: 直接工具名匹配
+            └── resolvePrefix(filePath) → 检查 MCP 在线状态
         │
         ▼
   exit 0 + additionalContext（软提示）
@@ -190,8 +168,8 @@ Hook 使用 **exit 0** + `additionalContext` — 它建议使用 MCP 工具，�
 日志文件：`{CLAUDE_PLUGIN_DATA}/hook.log`（JSONL 格式，超过 1MB 自动轮转）
 
 ```json
-{"ts":"2026-08-14 20:30:45","tool":"Read","file":"src/app.ts","action":"suggest","prefix":"mcp__JetBrains-WebStorm__","reason":"读取项目文件"}
-{"ts":"2026-08-14 20:30:46","tool":"Bash","file":"-","action":"suggest","prefix":"mcp__JetBrains-IDEA__","reason":"代码搜索"}
+{"ts":"2026-08-14 20:30:45","tool":"Read","file":"src/app.ts","action":"suggest","prefix":"WebStorm","reason":"读取项目文件"}
+{"ts":"2026-08-14 20:30:46","tool":"Bash","file":"-","action":"suggest","prefix":"IDEA","reason":"代码搜索"}
 {"ts":"2026-08-14 20:30:47","tool":"Terminal","file":"-","action":"pass","prefix":"-","reason":"-"}
 ```
 
@@ -204,11 +182,11 @@ Hook 使用 **exit 0** + `additionalContext` — 它建议使用 MCP 工具，�
   enabled: true,
   projectPath: "/path/to/monorepo",
   mcpMapping: {
-    "JetBrains-IDEA": [
+    "IDEA": [
       "!frontend/**",
       "**",
     ],
-    "JetBrains-WebStorm": [
+    "WebStorm": [
       "frontend/**",
     ],
   },
@@ -228,15 +206,15 @@ Hook 使用 **exit 0** + `additionalContext` — 它建议使用 MCP 工具，�
 
 | IDE | MCP 前缀 | 默认端口 |
 |-----|---------|---------|
-| IntelliJ IDEA | `JetBrains-IDEA` | 63342 |
-| WebStorm | `JetBrains-WebStorm` | 63343 |
-| PyCharm | `JetBrains-PyCharm` | 63344 |
-| GoLand | `JetBrains-GoLand` | 63345 |
-| RustRover | `JetBrains-RustRover` | 63346 |
-| CLion | `JetBrains-CLion` | 63347 |
-| PhpStorm | `JetBrains-PhpStorm` | 63348 |
-| RubyMine | `JetBrains-RubyMine` | 63349 |
-| Rider | `JetBrains-Rider` | 63350 |
+| IntelliJ IDEA | `IDEA` | 63342 |
+| WebStorm | `WebStorm` | 63343 |
+| PyCharm | `PyCharm` | 63344 |
+| GoLand | `GoLand` | 63345 |
+| RustRover | `RustRover` | 63346 |
+| CLion | `CLion` | 63347 |
+| PhpStorm | `PhpStorm` | 63348 |
+| RubyMine | `RubyMine` | 63349 |
+| Rider | `Rider` | 63350 |
 
 ## 开发
 

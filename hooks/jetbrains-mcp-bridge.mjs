@@ -20,7 +20,7 @@ const PLUGIN_NAME = 'jetbrains-mcp-bridge';
 
 /**
  * Build the full MCP tool namespace prefix for a server name.
- * e.g. "JetBrains-IDEA" → "mcp__plugin_jetbrains-mcp-bridge_JetBrains-IDEA__"
+ * e.g. "IDEA" → "mcp__plugin_jetbrains-mcp-bridge_IDEA__"
  */
 function buildFullPrefix(serverName) {
   const name = serverName.endsWith('__') ? serverName.slice(0, -2) : serverName;
@@ -91,7 +91,7 @@ function readCache(mcpMtime) {
 
 /**
  * Write probe result to cache file.
- * @param {Object} status - { "JetBrains-IDEA": true, "JetBrains-WebStorm": false, ... }
+ * @param {Object} status - { "IDEA": true, "WebStorm": false, ... }
  * @param {number} mcpMtime - .mcp.json mtime for invalidation
  */
 function writeCache(status, mcpMtime) {
@@ -130,7 +130,7 @@ function readMcpJson() {
 /**
  * Probe all JetBrains MCP ports from .mcp.json.
  * @param {object} mcp - readMcpJson() result (already loaded)
- * @returns {Object} { "JetBrains-IDEA": true, "JetBrains-WebStorm": false, ... }
+ * @returns {Object} { "IDEA": true, "WebStorm": false, ... }
  */
 async function probeMcp(mcp) {
   if (!mcp) return {};
@@ -153,7 +153,7 @@ async function probeMcp(mcp) {
 
   const status = {};
   names.forEach((name, i) => {
-    // 使用短名称作为 status key（如 "JetBrains-IDEA"）
+    // 使用短名称作为 status key（如 "IDEA"）
     const shortName = name.endsWith('__') ? name.slice(0, -2) : name;
     status[shortName] = results[i];
   });
