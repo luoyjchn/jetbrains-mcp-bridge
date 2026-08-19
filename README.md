@@ -221,9 +221,9 @@ For a monorepo with Java backend + Vue frontend:
 ## Development
 
 ```bash
-npm install              # Install devDependencies
-npm run build            # Bundle hook → hooks/jetbrains-mcp-bridge.bundle.mjs
-npm test                 # Run all tests (node --test tests/*.test.mjs)
+pnpm install             # Install devDependencies
+pnpm run build           # Bundle hook → hooks/jetbrains-mcp-bridge.bundle.mjs
+pnpm test                # Run all tests (node --test tests/*.test.mjs)
 
 # Run single test file
 node --test tests/core.test.mjs

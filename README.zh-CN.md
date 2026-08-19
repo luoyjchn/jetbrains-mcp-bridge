@@ -219,9 +219,9 @@ Hook 使用 **exit 0** + `additionalContext` — 它建议使用 MCP 工具，�
 ## 开发
 
 ```bash
-npm install              # 安装开发依赖
-npm run build            # 打包 hook → hooks/jetbrains-mcp-bridge.bundle.mjs
-npm test                 # 运行所有测试 (node --test tests/*.test.mjs)
+pnpm install             # 安装开发依赖
+pnpm run build           # 打包 hook → hooks/jetbrains-mcp-bridge.bundle.mjs
+pnpm test                # 运行所有测试 (node --test tests/*.test.mjs)
 
 # 运行单个测试文件
 node --test tests/core.test.mjs
