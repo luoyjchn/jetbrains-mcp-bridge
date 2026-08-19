@@ -137,7 +137,7 @@ async function probeMcp(mcp) {
 
   const entries = {};
   for (const [name, server] of Object.entries(mcp.data.mcpServers)) {
-    if (name.startsWith('JetBrains') && server.url) {
+    if (server.url) {
       const match = server.url.match(/(?:localhost|127\.0\.0\.1):(\d+)/);
       if (match) {
         entries[name] = { port: parseInt(match[1], 10), url: server.url };
