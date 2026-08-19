@@ -75,6 +75,9 @@ Three layers, higher priority overrides lower:
   // Enable logging to {CLAUDE_PLUGIN_DATA}/hook.log
   debug: false,
 
+  // Intercept policy: "suggest" (exit 0, soft) or "block" (exit 2, hard)
+  policy: "suggest",
+
   // Absolute path to project root (set by /jetbrains-mcp-bridge-setup)
   projectPath: "/path/to/project",
 

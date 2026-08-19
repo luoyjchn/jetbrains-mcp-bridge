@@ -289,11 +289,24 @@ async function main() {
   if (result.action === 'block') {
     // 使用完整 MCP 前缀（mcp__plugin_jetbrains-mcp-bridge_XXX__）用于 suggest 消息
     const fullPrefix = result.prefix ? buildFullPrefix(result.prefix) : '';
-    let message = `[JetBrains MCP Bridge] ${result.reason}。建议使用 ${result.suggest}。`;
-    if (fullPrefix) {
-      message += ` (MCP: ${fullPrefix})`;
+    const isBlock = config.policy === 'block';
+
+    if (isBlock) {
+      // 硬阻止：exit 2 + stderr，Claude 必须使用 MCP 工具
+      let message = `[JetBrains MCP Bridge] ${result.reason}。请使用 ${result.suggest}`;
+      if (fullPrefix) message += ` (MCP: ${fullPrefix})`;
+      message += '。';
+      writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'block', message }, config.debug);
+      process.stderr.write(message + '\n');
+      writeLog({ ts: ts(), step: 'HOOK-END', result: 'block', durationMs: Date.now() - hookStart }, config.debug);
+      process.exit(2);
     }
-    writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'additionalContext', message }, config.debug);
+
+    // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具
+    let message = `[JetBrains MCP Bridge] ${result.reason}。建议使用 ${result.suggest}`;
+    if (fullPrefix) message += ` (MCP: ${fullPrefix})`;
+    message += '。';
+    writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'suggest', message }, config.debug);
     // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {

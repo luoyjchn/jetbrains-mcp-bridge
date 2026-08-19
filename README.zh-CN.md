@@ -73,6 +73,9 @@ claude plugin install github:luoyjchn/jetbrains-mcp-bridge
   // 是否启用日志记录（写入 {CLAUDE_PLUGIN_DATA}/hook.log）
   debug: false,
 
+  // 拦截策略："suggest"（软提示，exit 0）或 "block"（硬阻止，exit 2）
+  policy: "suggest",
+
   // 项目根目录的绝对路径（由 /jetbrains-mcp-bridge-setup 自动设置）
   projectPath: "/path/to/project",
 
