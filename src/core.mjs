@@ -1,8 +1,6 @@
 import { readFileSync } from "node:fs";
-import { join, relative, isAbsolute } from "node:path";
+import { join } from "node:path";
 import { homedir } from "node:os";
-
-const SOURCE_FILE_TOOLS = ["Read", "Write", "Edit"];
 
 /**
  * Recursively merge source into target. Objects are deep-merged;
@@ -256,31 +254,7 @@ export function evaluate(config, toolName, toolInput, filePath, logger) {
     return result;
   }
 
-  // 3. fileTypeMap + sourceExtensions — file-type filtering for Read/Write/Edit
-  if (
-    SOURCE_FILE_TOOLS.includes(toolName) && filePath &&
-    config.fileTypeMap && Array.isArray(config.sourceExtensions)
-  ) {
-    const ext = extractExtension(filePath);
-    if (ext && config.sourceExtensions.includes(ext)) {
-      const mapped = config.fileTypeMap[ext];
-      if (mapped) {
-        // mapped 是 MCP 前缀，检查该前缀是否在线
-        if (!isMcpOnline(mapped, mcpStatus)) {
-          log(`PASS: fileTypeMap[${ext}]=${mapped} but MCP offline`);
-          return { action: "pass" };
-        }
-        const result = buildBlock(mapped);
-        result.prefix = mapped;
-        log(`BLOCK: fileTypeMap[${ext}] matched, prefix=${mapped}`);
-        return result;
-      }
-      log(`PASS: ext=${ext} in sourceExtensions but no fileTypeMap entry`);
-    } else {
-      log(`PASS: tool=${toolName}, ext=${ext || '-'}, not in sourceExtensions or no ext`);
-    }
-  }
-
+  // 3. 无匹配规则
   log(`PASS: no matching rule for tool=${toolName}, file=${filePath || '-'}`);
   return { action: "pass" };
 }
@@ -329,11 +303,6 @@ function buildBlock(entry) {
     suggest = entry.suggest._default || Object.values(entry.suggest)[0] || "";
   }
   return { action: "block", reason: entry.reason ?? "", suggest, prefix: entry.prefix };
-}
-
-function extractExtension(filePath) {
-  const match = filePath.match(/(\.\w[\w.]*)$/);
-  return match ? match[1] : null;
 }
 
 /**

@@ -49,12 +49,12 @@ describe("evaluate()", () => {
   });
 
   it("Write tool blocks when MCP online", () => {
-    const config = { ...mcpOnline, sourceExtensions: [".java"], fileTypeMap: { ".java": "JetBrains-IDEA" } };
+    const config = { ...mcpOnline, toolMap: { Write: { reason: "写入", suggest: { _default: "create_new_file" } } } };
     assert.equal(evaluate(config, "Write", {}, "/src/Foo.java").action, "block");
   });
 
   it("Write tool passes when specific MCP offline", () => {
-    const config = { _mcpStatus: { "JetBrains-IDEA": false }, sourceExtensions: [".java"], fileTypeMap: { ".java": "JetBrains-IDEA" } };
+    const config = { _mcpStatus: { "JetBrains-IDEA": false }, toolMap: { Write: { reason: "写入", suggest: { _default: "create_new_file" } } }, defaultPrefix: "JetBrains-IDEA" };
     assert.deepStrictEqual(evaluate(config, "Write", {}, "/src/Foo.java"), { action: "pass" });
   });
 

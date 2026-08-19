@@ -15,16 +15,16 @@ const IDE_SERIES = [
 ];
 
 const MCP_PREFIXES = {
-  idea: 'JetBrains-IDEA',
-  webstorm: 'JetBrains-WebStorm',
-  pycharm: 'JetBrains-PyCharm',
-  goland: 'JetBrains-GoLand',
-  rustrover: 'JetBrains-RustRover',
-  clion: 'JetBrains-CLion',
-  phpstorm: 'JetBrains-PhpStorm',
-  rubymine: 'JetBrains-RubyMine',
-  rider: 'JetBrains-Rider',
-  default: 'JetBrains-IDE',
+  idea: 'IDEA',
+  webstorm: 'WebStorm',
+  pycharm: 'PyCharm',
+  goland: 'GoLand',
+  rustrover: 'RustRover',
+  clion: 'CLion',
+  phpstorm: 'PhpStorm',
+  rubymine: 'RubyMine',
+  rider: 'Rider',
+  default: 'IDE',
 };
 
 const SUGGESTIONS = {

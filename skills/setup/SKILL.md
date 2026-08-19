@@ -57,44 +57,48 @@ cp "${CLAUDE_PLUGIN_ROOT}/config/example-project.json5" .claude/jetbrains-mcp-br
 
 如果已存在，使用 AskUserQuestion 询问：**覆盖** 或 **跳过**。
 
-### Step 3: 配置 MCP 端口
+### Step 3: 选择需要配置的 IDE
 
-展示支持的 IDE 列表，逐个让用户填写端口号（支持跳过）：
+使用 AskUserQuestion（multiSelect: true）让用户选择需要配置 MCP 端口的 IDE：
 
 ```
 支持的 JetBrains IDE：
-  1. IntelliJ IDEA (JetBrains-IDEA)
-  2. WebStorm (JetBrains-WebStorm)
-  3. PyCharm (JetBrains-PyCharm)
-  4. GoLand (JetBrains-GoLand)
-  5. RustRover (JetBrains-RustRover)
-  6. CLion (JetBrains-CLion)
-  7. PhpStorm (JetBrains-PhpStorm)
-  8. RubyMine (JetBrains-RubyMine)
-  9. Rider (JetBrains-Rider)
+  1. IntelliJ IDEA
+  2. WebStorm
+  3. PyCharm
+  4. GoLand
+  5. RustRover
+  6. CLion
+  7. PhpStorm
+  8. RubyMine
+  9. Rider
 ```
 
-对每个 IDE，使用 AskUserQuestion 询问：
+用户可多选。记录选中的 IDE 列表。
+
+### Step 4: 配置选中 IDE 的端口
+
+对 Step 3 中每个选中的 IDE，使用 AskUserQuestion 询问端口号：
 - **填写端口** — 用户输入端口号（如 63342）
 - **跳过** — 不配置此 IDE
 
-### Step 4: 生成 .mcp.json
+### Step 5: 生成 .mcp.json
 
-根据 Step 3 用户填写的端口，生成 `.mcp.json`。写入插件根目录（`${CLAUDE_PLUGIN_ROOT}`），Claude Code MCP 加载器从此路径发现服务器。
+根据 Step 4 用户填写的端口，生成 `.mcp.json`。写入插件根目录（`${CLAUDE_PLUGIN_ROOT}`），Claude Code MCP 加载器从此路径发现服务器。
 
 使用 Write 工具将生成的 JSON 写入 `${CLAUDE_PLUGIN_ROOT}/.mcp.json`。
 
 规则：
 - 仅包含用户填写了端口的 IDE
 - 跳过的 IDE 不写入
-- MCP 服务器名必须与 fileTypeMap 中的前缀一致（如 `JetBrains-IDEA`、`JetBrains-WebStorm`）
+- MCP 服务器名使用短名称（如 `IDEA`、`WebStorm`、`PyCharm`）
 - 如果 `.mcp.json` 已存在，直接覆盖
 
 生成的格式示例：
 ```json
 {
   "mcpServers": {
-    "JetBrains-IDEA": {
+    "IDEA": {
       "type": "sse",
       "url": "http://localhost:63342/sse"
     }
@@ -102,7 +106,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/config/example-project.json5" .claude/jetbrains-mcp-br
 }
 ```
 
-### Step 5: 完成
+### Step 6: 完成
 
 提示用户：
 - 全局配置：`~/.claude/jetbrains-mcp-bridge.json5`
