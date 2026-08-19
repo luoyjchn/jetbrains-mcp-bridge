@@ -7,7 +7,7 @@
   enabled: true,
   // 是否启用日志记录（写入 {CLAUDE_PLUGIN_DATA}/hook.log）
   debug: false,
-  // 拦截策略："suggest"（软提示，exit 0）或 "block"（硬阻止，exit 2）
+  // 拦截策略："suggest"（软提示）| "deny"（软阻止，工具不执行但不报错）| "block"（硬阻止，exit 2）
   policy: "suggest",
   // 项目根目录的绝对路径（由 init 命令自动设置）
   projectPath: "",

@@ -287,34 +287,47 @@ async function main() {
   }
 
   if (result.action === 'block') {
-    // 使用完整 MCP 前缀（mcp__plugin_jetbrains-mcp-bridge_XXX__）用于 suggest 消息
     const fullPrefix = result.prefix ? buildFullPrefix(result.prefix) : '';
-    const isBlock = config.policy === 'block';
+    const policy = config.policy || 'suggest';
 
-    if (isBlock) {
+    // 构建 MCP 工具名（用于 suggest 消息中的具体指引）
+    const mcpToolName = fullPrefix ? `${fullPrefix}${result.suggest}` : result.suggest;
+
+    if (policy === 'block') {
       // 硬阻止：exit 2 + stderr，Claude 必须使用 MCP 工具
-      let message = `[JetBrains MCP Bridge] ${result.reason}。请使用 ${result.suggest}`;
-      if (fullPrefix) message += ` (MCP: ${fullPrefix})`;
-      message += '。';
+      let message = `[JetBrains MCP Bridge] 检测到${result.reason}操作。请改用 ${mcpToolName} 替代。`;
       writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'block', message }, config.debug);
       process.stderr.write(message + '\n');
       writeLog({ ts: ts(), step: 'HOOK-END', result: 'block', durationMs: Date.now() - hookStart }, config.debug);
       process.exit(2);
     }
 
-    // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具
-    let message = `[JetBrains MCP Bridge] ${result.reason}。建议使用 ${result.suggest}`;
-    if (fullPrefix) message += ` (MCP: ${fullPrefix})`;
-    message += '。';
+    if (policy === 'deny') {
+      // 软阻止：permissionDecision: deny，工具不执行但不报错，附加 MCP 工具指引
+      let message = `检测到${result.reason}操作，请改用 JetBrains IDE 的 ${mcpToolName} 工具替代，它使用 IDE 索引更准确高效。`;
+      writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'deny', message }, config.debug);
+      process.stdout.write(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: "PreToolUse",
+          permissionDecision: "deny",
+          permissionDecisionReason: message,
+          additionalContext: message,
+        },
+      }) + '\n');
+      writeLog({ ts: ts(), step: 'HOOK-END', result: 'deny', durationMs: Date.now() - hookStart }, config.debug);
+      process.exit(0);
+    }
+
+    // suggest（默认）：exit 0 + additionalContext，Claude 自行决定
+    let message = `检测到${result.reason}操作。建议改用 JetBrains IDE 的 ${mcpToolName} 工具，它使用 IDE 索引更准确高效。`;
     writeLog({ ts: ts(), step: 'HOOK-OUTPUT', type: 'suggest', message }, config.debug);
-    // 软提示：exit 0 + additionalContext，Claude 自行决定是否使用 MCP 工具
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         additionalContext: message,
       },
     }) + '\n');
-    writeLog({ ts: ts(), step: 'HOOK-END', result: 'block', durationMs: Date.now() - hookStart }, config.debug);
+    writeLog({ ts: ts(), step: 'HOOK-END', result: 'suggest', durationMs: Date.now() - hookStart }, config.debug);
     process.exit(0);
   }
 
