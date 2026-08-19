@@ -9,7 +9,7 @@
     {
       "name": "jetbrains-mcp-bridge",
       "description": "Intercepts Claude Code file operations (Read/Write/Edit/Grep/Glob) and Bash commands, suggesting JetBrains IDE MCP tools instead (search_regex, read_file, apply_patch, etc.)",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "author": {
         "name": "luoyjchn"
       },
@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "version": "0.3.0"
+  "version": "0.3.1"
 }
