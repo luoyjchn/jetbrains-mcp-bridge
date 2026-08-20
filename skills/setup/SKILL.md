@@ -100,7 +100,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/config/example-project.json5" .claude/jetbrains-mcp-br
   "mcpServers": {
     "IDEA": {
       "type": "sse",
-      "url": "http://localhost:63342/sse"
+      "url": "http://127.0.0.1:63342/sse"
     }
   }
 }
