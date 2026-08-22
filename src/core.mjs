@@ -153,10 +153,21 @@ export function isMcpOnline(prefix, mcpStatus) {
   if (!mcpStatus || typeof mcpStatus !== "object") return false;
   const entries = Object.entries(mcpStatus);
   if (entries.length === 0) return false;
-  // 有具体前缀：直接检查（prefix 已含 mcp__ 前缀）
   if (prefix) return mcpStatus[prefix] === true;
-  // 无具体前缀（Bash 命令）：检查是否有任何 JetBrains MCP 在线
   return entries.some(([, v]) => v === true);
+}
+
+/**
+ * Get the first online MCP prefix from mcpStatus.
+ * @param {object} mcpStatus - { "IDEA": true, "WebStorm": false, ... }
+ * @returns {string|null} first online prefix, or null
+ */
+export function getFirstOnlineMcp(mcpStatus) {
+  if (!mcpStatus || typeof mcpStatus !== "object") return null;
+  for (const [name, online] of Object.entries(mcpStatus)) {
+    if (online === true) return name;
+  }
+  return null;
 }
 
 /**
@@ -228,8 +239,9 @@ export function evaluate(config, toolName, toolInput, filePath, logger) {
             return { action: "pass" };
           }
           const result = buildBlock(entry);
-          result.prefix = prefix;
-          log(`BLOCK: bashPattern matched, pattern=${entry.pattern}, prefix=${prefix || '-'}`);
+          // prefix 为空时取第一个在线 MCP
+          result.prefix = prefix || getFirstOnlineMcp(mcpStatus);
+          log(`BLOCK: bashPattern matched, pattern=${entry.pattern}, prefix=${result.prefix || '-'}`);
           return result;
         }
       }
@@ -249,7 +261,8 @@ export function evaluate(config, toolName, toolInput, filePath, logger) {
       return { action: "pass" };
     }
     const result = buildBlock(config.toolMap[toolName]);
-    result.prefix = prefix;
+    // prefix 为空时取第一个在线 MCP
+    result.prefix = prefix || getFirstOnlineMcp(mcpStatus);
     log(`BLOCK: toolMap[${toolName}] matched, prefix=${prefix || '-'}`);
     return result;
   }

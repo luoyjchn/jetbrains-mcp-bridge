@@ -25,7 +25,8 @@
     //    ".git/**",
   ],
   // 默认 MCP 前缀（短名称，代码自动拼接完整命名空间）
-  defaultPrefix: "IDEA",
+  // 留空时自动取 .mcp.json 中第一个在线的 MCP
+  defaultPrefix: "",
   // 通用 Bash 命令模式检测规则
   bashPatterns: [
     {
